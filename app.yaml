@@ -1,4 +1,4 @@
-application: sandengine
+application: todo_angular_endpoints_socket
 version: dev
 runtime: python27
 api_version: 1
