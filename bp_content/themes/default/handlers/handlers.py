@@ -25,6 +25,12 @@ from bp_includes.lib import captcha, utils
 import bp_includes.models as models_boilerplate
 import forms as forms
 
+from google.appengine.api import memcache
+from google.appengine.api import channel
+import random
+
+import logging
+logger = logging.getLogger(__name__)
 
 class ContactHandler(BaseHandler):
     """
@@ -243,8 +249,42 @@ class DeleteAccountHandler(BaseHandler):
     def form(self):
         return forms.DeleteAccountForm(self)
 
+class ChannelConnected(BaseHandler):
+    def post(self,**kwargs):
+        logger.warn("connected")
+        from_person = self.request.get('from')
+        (person,room)= from_person.split("_")
+        memcache_key=room
+        people=memcache.get(memcache_key)
+        if people:
+            people.append(person)
+            memcache.set(room,people,3600)
+        else:
+            memcache.set(room,[person],3600)
+
+class ChannelDisconnected(BaseHandler):
+    def post(self,**kwargs):
+        logger.warn("disconnected")
+        from_person = self.request.get('from')
+        (person,room)= from_person.split("_")
+        memcache_key=room
+        people=memcache.get(memcache_key)
+        if people:
+            try:
+                people.remove(person)
+                memcache.set(room,people,3600)
+            except:
+                pass
+
+        else:
+            memcache.set(room,[],3600)
+
 class TestAngular(BaseHandler):
     def get(self,**kwargs):
         params = {
+            'me'        : "%d"%random.randint(1,10000),
+            'game_key'  : "todo"
         }
+        token = channel.create_channel('%s_%s'%(params['me'],params['game_key']))
+        params['token'] = token
         return self.render_template('index.html', **params)

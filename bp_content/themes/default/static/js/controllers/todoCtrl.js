@@ -2,16 +2,31 @@ var app = angular.module('todomvc',["ngResource"]);
 
 app.factory('todoFactory', function($resource) {
     var apiRoot='//' + window.location.host + '/_ah/api/todoapi/v1/todo/:id';
-    return $resource(apiRoot,
-        {'update': {method: 'PUT'}},
-        {'query':  {method:'GET', isArray:true,
+    return $resource(apiRoot, {},{
+        save:   {
+            method: 'POST',
+            headers:{clientId : window.client_id}
+        },
+        delete: {
+            method: 'DELETE',
+            headers: {clientID: window.client_id}
+        },
+        update: {
+            method: 'PUT',
+            headers:{clientId : window.client_id}
+        },
+        query:  {
+            method:'GET',
+            isArray:true,
+            headers:{clientId : window.client_id},
             transformResponse: function(data, headers){
                 console.log(data);
                 return JSON.parse(data)['items'];
             }
-        }}
+        }
 
-    );
+
+    });
 });
 
 app.controller('TodoCtrl',function($scope,todoFactory){
@@ -89,6 +104,25 @@ app.controller('TodoCtrl',function($scope,todoFactory){
     };
 
     $scope.loadTodos();
+    var channel = new goog.appengine.Channel(window.token);
+    var socket = channel.open();
+    socket.onmessage=function(message){
+        json=JSON.parse(message['data']);
+        if (json.action =="update"){
+            temp = _.find($scope.todos,function(todo){ console.log(todo.id);return todo.id == json.id  });
+            if (temp == undefined){
+                newTodo = new todoFactory({id:json.id,text:json.text, done:json.done});
+                $scope.todos.push(newTodo);
+            } else {
+                temp.text= json.text;
+                temp.done= json.done;
+            }
+        }
+        if (json.action == "delete"){
+            $scope.todos=_.filter($scope.todos,function(todo){ console.log(todo.id);return todo.id != json.id })
+        }
+        $scope.$apply()
+    }
 
 });
 

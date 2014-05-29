@@ -1,4 +1,4 @@
-application: todo_angular_endpoints_socket
+application: todo-angular-endpoints-socket
 version: dev
 runtime: python27
 api_version: 1
@@ -33,6 +33,9 @@ skip_files:
 builtins:
 - appstats: on #/_ah/stats/
 - remote_api: on #/_ah/remote_api/
+
+inbound_services:
+- channel_presence
 
 handlers:
 
@@ -69,22 +72,27 @@ handlers:
   static_dir: bp_includes/static/js
 
 
+- url: /bower_components/todomvc-common/(.*\.css)$
+  mime_type: text/css
+  static_files: bp_content/themes/default/static/js/bower_components/todomvc-common/\1
+  upload: bp_content/themes/default/static/js/bower_components/todomvc-common/(.*\.css)
+
+- url: /bower_components/todomvc-common/(.*\.js)$
+  mime_type: text/javascript
+  static_files: bp_content/themes/default/static/js/bower_components/todomvc-common/\1
+  upload: bp_content/themes/default/static/js/bower_components/todomvc-common/(.*\.js)
+
+- url: /css/*
+  mime_type: text/css
+  static_dir: bp_content/themes/default/static/css/
+
+- url: /js/*
+  mime_type: text/javascript
+  static_dir: bp_content/themes/default/static/js/
+
 - url: /boilerplate/img/(.*\.(gif|png|jpg))
   static_files: bp_includes/static/img/\1
   upload: bp_includes/static/img/(.*\.(gif|png|jpg))
-
-- url: /(\w*)/css/(.*\.css)$
-  mime_type: text/css
-  static_files: bp_content/themes/\1/static/css/\2
-  upload: bp_content/themes/(\w*)/static/css/(.*\.css)$
-
-- url: /js/(.*\.js)$
-  mime_type: text/javascript
-  static_files: bp_content/themes/default/static/js/\1
-  upload: bp_content/themes/default/static/js/(.*\.js)$
-
-- url: /bower_components
-  static_dir: bp_content/themes/default/static/js/bower_components
 
 - url: /(\w*)/img/(.*\.(gif|png|jpg|jpeg))
   static_files: bp_content/themes/\1/static/img/\2
@@ -118,6 +126,9 @@ handlers:
 - url: /taskqueue-send-email.*
   script: main.app
   login: admin
+
+- url: /_ah/channel/.*
+  script: main.app
 
 - url: /.*
   script: main.app

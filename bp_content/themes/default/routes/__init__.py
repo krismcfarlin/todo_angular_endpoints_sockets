@@ -15,7 +15,9 @@ _routes = [
     RedirectRoute('/settings/delete_account', handlers.DeleteAccountHandler, name='delete-account', strict_slash=True),
     RedirectRoute('/contact/', handlers.ContactHandler, name='contact', strict_slash=True),
     RedirectRoute('/contact/', handlers.ContactHandler, name='contact', strict_slash=True),
-    RedirectRoute('/', handlers.TestAngular, name='home', strict_slash=True)
+    RedirectRoute('/', handlers.TestAngular, name='home', strict_slash=True),
+    RedirectRoute('/_ah/channel/connected/', handlers.ChannelConnected,name="channelconnected",strict_slash=False),
+    RedirectRoute('/_ah/channel/disconnected/', handlers.ChannelDisconnected,name="channeldisconnected",strict_slash=False),
 ]
 
 def get_routes():
